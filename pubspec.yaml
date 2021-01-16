@@ -1,8 +1,8 @@
 name: next_synth_midi
-description: A new flutter plugin project.
+description: MIDI library
 version: 0.0.1
-author:
-homepage:
+author: desktopgame
+homepage: https://github.com/desktopgame/next_synth_midi
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
