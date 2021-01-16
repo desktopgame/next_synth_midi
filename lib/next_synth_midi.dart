@@ -98,7 +98,7 @@ class NextSynthMidi {
         'canReceive', {"deviceIndex": deviceIndex, "outputPort": outputPort});
   }
 
-  static Future<int> getBluetoothDeviceCount() async {
+  static Future<int> get bluetoothDeviceCount async {
     return await _channel.invokeMethod("getBluetoothDeviceCount", {});
   }
 
