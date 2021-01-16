@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:typed_data';
 
-import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'package:next_synth_midi/next_synth_midi.dart';
 
 void main() {
@@ -24,22 +24,50 @@ class _MyAppState extends State<MyApp> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      platformVersion = await NextSynthMidi.platformVersion;
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
+    int deviceCount = await Midik.deviceCount;
+    bool opened = false;
+    print("deviceCount= ${deviceCount}");
+    for (int i = 0; i < deviceCount; i++) {
+      String name = await Midik.getDeviceName(i);
+      int inputs = await Midik.getInputPortCount(i);
+      int outputs = await Midik.getOutputPortCount(i);
+      print("name=${name} inputs=${inputs} outputs=${outputs}");
+      for (int j = 0; j < inputs + outputs; j++) {
+        int port = await Midik.getPortNumber(i, j);
+        bool isInput = await Midik.isInputPort(i, j);
+        bool isOutput = await Midik.isOutputPort(i, j);
+        print("[$j] port=${port} isInput=${isInput} isOutput=${isOutput}");
+        if (isOutput && !opened) {
+          opened = true;
+          print("send");
+          await Midik.openPort(i, port, -1);
+          await Midik.waitForOpen(i, port, -1);
+          await Midik.send(i, port, Uint8List.fromList([0x90, 60, 127]), 0, 3);
+          await Future.delayed(new Duration(seconds: 3));
+          await Midik.send(i, port, Uint8List.fromList([0x90, 60, 0]), 0, 3);
+          var n = await Midik.closePort(i, port, -1);
+          print("send! $n");
+        }
+      }
     }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-    });
+    int bDeviceCount = await Midik.getBluetoothDeviceCount();
+    print("bdevs=$bDeviceCount");
+    for (int i = 0; i < bDeviceCount; i++) {
+      if (i == 1) continue;
+      String name = await Midik.getBluetoothDeviceName(i);
+      print("b_name=${name}");
+      print("send");
+      int id = await Midik.openBluetoothPort(i, 0, -1);
+      await Midik.waitForOpenBluetooth(id, 0, -1);
+      await Midik.sendBluetooth(
+          id, 0, Uint8List.fromList([0x90, 60, 127]), 0, 3);
+      await Future.delayed(new Duration(seconds: 3));
+      await Midik.sendBluetooth(id, 0, Uint8List.fromList([0x90, 60, 0]), 0, 3);
+      var n = await Midik.closeBluetoothPort(id, 0, -1);
+      //var n = await Midik.closePort(i, 0, -1);
+      print("send! $n");
+      break;
+    }
   }
 
   @override
