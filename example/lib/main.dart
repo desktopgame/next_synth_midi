@@ -50,24 +50,6 @@ class _MyAppState extends State<MyApp> {
         }
       }
     }
-    int bDeviceCount = await Midik.getBluetoothDeviceCount();
-    print("bdevs=$bDeviceCount");
-    for (int i = 0; i < bDeviceCount; i++) {
-      if (i == 1) continue;
-      String name = await Midik.getBluetoothDeviceName(i);
-      print("b_name=${name}");
-      print("send");
-      int id = await Midik.openBluetoothPort(i, 0, -1);
-      await Midik.waitForOpenBluetooth(id, 0, -1);
-      await Midik.sendBluetooth(
-          id, 0, Uint8List.fromList([0x90, 60, 127]), 0, 3);
-      await Future.delayed(new Duration(seconds: 3));
-      await Midik.sendBluetooth(id, 0, Uint8List.fromList([0x90, 60, 0]), 0, 3);
-      var n = await Midik.closeBluetoothPort(id, 0, -1);
-      //var n = await Midik.closePort(i, 0, -1);
-      print("send! $n");
-      break;
-    }
   }
 
   @override
