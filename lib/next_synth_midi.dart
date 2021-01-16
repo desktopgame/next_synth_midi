@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 
-class Midik {
+class NextSynthMidi {
   static MethodChannel _impl;
   static MethodChannel get _channel {
     if (_impl == null) {
