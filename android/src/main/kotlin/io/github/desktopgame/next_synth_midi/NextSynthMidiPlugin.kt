@@ -6,8 +6,12 @@ import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.pm.PackageManager
 import android.media.midi.MidiDeviceInfo
+import android.media.midi.MidiDeviceStatus
 import android.media.midi.MidiManager
+import android.media.midi.MidiManager.DeviceCallback
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
@@ -22,11 +26,13 @@ import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
 
 /** NextSynthMidiPlugin */
+@RequiresApi(Build.VERSION_CODES.M)
 class NextSynthMidiPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   private lateinit var context: Context
   private lateinit var activity: Activity
   private lateinit var portManager: PortManager;
   private lateinit var bPortManager: PortManager;
+  private lateinit var deviceCallbackHandler: DeviceCallbackHandler;
 
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
@@ -50,6 +56,10 @@ class NextSynthMidiPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
     }
     if(!this::bPortManager.isInitialized) {
       this.bPortManager = PortManager(midiManager);
+    }
+    if(!this::deviceCallbackHandler.isInitialized) {
+      this.deviceCallbackHandler = DeviceCallbackHandler();
+      midiManager.registerDeviceCallback(deviceCallbackHandler, Handler(Looper.getMainLooper()));
     }
     // isSupported
     if (call.method == "isSupported") {
@@ -267,6 +277,18 @@ class NextSynthMidiPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
       val deviceIndex = args["id"] as Int;
       val outputPort = args["outputPort"] as Int;
       result.success(bPortManager.canReceive(deviceIndex, outputPort));
+    } else if(call.method == "isDeviceListUpdated") {
+      result.success(deviceCallbackHandler.dirty);
+    } else if(call.method == "rehashDeviceList") {
+      deviceCallbackHandler.rehash();
+      result.success(null);
+    } else if(call.method == "registerDeviceCallback") {
+      deviceCallbackHandler.rehash();
+      midiManager.registerDeviceCallback(deviceCallbackHandler, Handler(Looper.getMainLooper()));
+      result.success(null);
+    } else if(call.method == "unregisterDeviceCallback") {
+      midiManager.unregisterDeviceCallback(deviceCallbackHandler);
+      result.success(null);
     } else {
       result.notImplemented()
     }

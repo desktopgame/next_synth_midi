@@ -148,4 +148,20 @@ class NextSynthMidi {
     return await _channel.invokeMethod(
         'canReceiveBluetooth', {"id": id, "outputPort": outputPort});
   }
+
+  static Future<bool> isDeviceListUpdated() async {
+    return await _channel.invokeMethod("isDeviceListUpdated", {});
+  }
+
+  static Future<void> rehashDeviceList() async {
+    return await _channel.invokeMethod("rehashDeviceList", {});
+  }
+
+  static Future<void> registerDeviceCallback() async {
+    return await _channel.invokeMethod("registerDeviceCallback", {});
+  }
+
+  static Future<void> unregisterDeviceCallback() async {
+    return await _channel.invokeMethod("unregisterDeviceCallback", {});
+  }
 }

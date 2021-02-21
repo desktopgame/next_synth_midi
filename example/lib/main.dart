@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:next_synth_midi/next_synth_midi.dart';
+import 'dart:async';
 
 void main() {
   runApp(MyApp());
@@ -20,6 +21,18 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     initPlatformState();
+
+    Timer.periodic(
+      Duration(seconds: 1),
+      (Timer t) async {
+        if (await NextSynthMidi.isDeviceListUpdated()) {
+          await NextSynthMidi.rehashDeviceList();
+          setState(() {
+            _platformVersion = "device updated";
+          });
+        }
+      },
+    );
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
